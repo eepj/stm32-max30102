@@ -100,6 +100,14 @@ void max30102_set_led_current_2(max30102_t *obj, float ma)
     max30102_write(obj, MAX30102_LED_RED_PA2, &pa, 1);
 }
 
+void max30102_set_fifo_config(max30102_t *obj, max30102_smp_ave_t smp_ave, uint8_t roll_over_en, uint8_t fifo_a_full){
+    uint8_t config = 0x00;
+    config |= smp_ave << MAX30102_FIFO_CONFIG_SMP_AVE;
+    config |= ((roll_over_en & 0x01) << MAX30102_FIFO_CONFIG_ROLL_OVER_EN);
+    config |= ((fifo_a_full & 0x0f) << MAX30102_FIFO_CONFIG_FIFO_A_FULL);
+    max30102_write(obj, MAX30102_FIFO_CONFIG, &config, 1);
+}
+
 void max30102_clear_fifo(max30102_t *obj)
 {
     uint8_t val = 0x00;

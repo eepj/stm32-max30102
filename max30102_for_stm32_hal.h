@@ -25,6 +25,11 @@
 
 #define MAX30102_FIFO_DATA          0x07
 
+#define MAX30102_FIFO_CONFIG        0x08
+#define MAX30102_FIFO_CONFIG_SMP_AVE        5
+#define MAX30102_FIFO_CONFIG_ROLL_OVER_EN   4
+#define MAX30102_FIFO_CONFIG_FIFO_A_FULL    0
+
 #define MAX30102_MODE_CONFIG        0x09
 #define MAX30102_MODE_SHDN                  7
 #define MAX30102_MODE_RESET                 6
@@ -55,6 +60,15 @@ typedef enum max30102_mode_t {
     max30102_spo2 = 0x03,
     max30102_multi_led = 0x07
 } max30102_mode_t;
+
+typedef enum max30102_smp_ave_t {
+    max30102_smp_ave_1,
+    max30102_smp_ave_2,
+    max30102_smp_ave_4,
+    max30102_smp_ave_8,
+    max30102_smp_ave_16,
+    max30102_smp_ave_32,
+} max30102_smp_ave_t;
 
 typedef enum max30102_spo2_sr_t {
     max30102_spo2_50,
@@ -114,6 +128,7 @@ void max30102_set_spo2_adc_resolution(max30102_t *obj, max30102_spo2_adc_t adc);
 void max30102_set_led_current_1(max30102_t *obj, float ma);
 void max30102_set_led_current_2(max30102_t *obj, float ma);
 
+void max30102_set_fifo_config(max30102_t *obj, max30102_smp_ave_t smp_ave, uint8_t roll_over_en, uint8_t fifo_a_full);
 void max30102_clear_fifo(max30102_t *obj);
 void max30102_read_fifo(max30102_t *obj);
 

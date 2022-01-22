@@ -96,8 +96,8 @@ typedef struct max30102_t
 } max30102_t;
 
 void max30102_init(max30102_t *obj, I2C_HandleTypeDef *hi2c);
-void max30102_write(max30102_t *obj, uint8_t reg, uint8_t *buf, size_t buflen);
-void max30102_read(max30102_t *obj, uint8_t reg, uint8_t *buf, size_t buflen);
+void max30102_write(max30102_t *obj, uint8_t reg, uint8_t *buf, uint16_t buflen);
+void max30102_read(max30102_t *obj, uint8_t reg, uint8_t *buf, uint16_t buflen);
 
 void max30102_enable_interrupt(max30102_t *obj, uint8_t a_full, uint8_t ppg_rdy, uint8_t alc_ovf, uint8_t die_temp_rdy);
 

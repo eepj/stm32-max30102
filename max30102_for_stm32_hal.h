@@ -35,12 +35,20 @@
 #define MAX30102_SPO2_SR                    2
 #define MAX30102_SPO2_LEW_PW                0
 
-#define MAX30102_LED_PA1            0x0c
-#define MAX30102_LED_PA2            0x0d
+#define MAX30102_LED_IR_PA1         0x0c
+#define MAX30102_LED_RED_PA2        0x0d
+
+#define MAX30102_MULTI_LED_CTRL_1   0x11
+#define MAX30102_MULTI_LED_CTRL_SLOT2       4
+#define MAX30102_MULTI_LED_CTRL_SLOT1       0
+#define MAX30102_MULTI_LED_CTRL_2   0x12
+#define MAX30102_MULTI_LED_CTRL_SLOT4       4
+#define MAX30102_MULTI_LED_CTRL_SLOT3       0
+
 
 typedef enum max30102_mode_t {
     max30102_heart_rate = 0x02,
-    max30102_SpO2 = 0x03,
+    max30102_spo2 = 0x03,
     max30102_multi_led = 0x07
 } max30102_mode_t;
 
@@ -68,6 +76,12 @@ typedef enum max30102_spo2_adc_t {
     max30102_spo2_adc_10,
     max30102_spo2_adc_11
 } max30102_spo2_adc_t;
+
+typedef enum max30102_multi_led_ctrl_t {
+    max30102_led_off,
+    max30102_led_red,
+    max30102_led_ir
+} max30102_multi_led_ctrl_t;
 
 typedef struct max30102_t
 {

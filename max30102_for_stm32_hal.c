@@ -86,7 +86,7 @@ void max30102_set_led_current_1(max30102_t *obj, float ma)
     else if (ma > 51.0)
         ma = 51.0;
     uint8_t pa = ma / 0.2;
-    max30102_write(obj, MAX30102_LED_PA1, &pa, 1);
+    max30102_write(obj, MAX30102_LED_IR_PA1, &pa, 1);
 }
 
 void max30102_set_led_current_2(max30102_t *obj, float ma)
@@ -96,7 +96,7 @@ void max30102_set_led_current_2(max30102_t *obj, float ma)
     else if (ma > 51.0)
         ma = 51.0;
     uint8_t pa = ma / 0.2;
-    max30102_write(obj, MAX30102_LED_PA2, &pa, 1);
+    max30102_write(obj, MAX30102_LED_RED_PA2, &pa, 1);
 }
 
 void max30102_clear_fifo(max30102_t *obj)

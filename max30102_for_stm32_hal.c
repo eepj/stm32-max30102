@@ -11,17 +11,11 @@ void max30102_init(max30102_t *obj, I2C_HandleTypeDef *hi2c)
 
 void max30102_write(max30102_t *obj, uint8_t reg, uint8_t *buf, uint16_t buflen)
 {
-    printf("Writing to %02x: ", reg);
     uint8_t *payload = (uint8_t *)malloc((buflen + 1) * sizeof(uint8_t));
     *payload = reg;
     if (buf != NULL && buflen != 0)
         memcpy(payload + 1, buf, buflen);
     HAL_I2C_Master_Transmit(obj->ui2c, MAX30102_I2C_ADDR << 1, payload, buflen + 1, MAX30102_I2C_TIMEOUT);
-    for (uint8_t i = 0; i < buflen + 1; i++)
-    {
-        printf("%02x ", payload[i]);
-    }
-    printf("\n");
     free(payload);
 }
 
@@ -30,9 +24,12 @@ void max30102_read(max30102_t *obj, uint8_t reg, uint8_t *buf, uint16_t buflen)
     uint8_t reg_addr = reg;
     HAL_I2C_Master_Transmit(obj->ui2c, MAX30102_I2C_ADDR << 1, &reg_addr, 1, MAX30102_I2C_TIMEOUT);
     HAL_I2C_Master_Receive(obj->ui2c, MAX30102_I2C_ADDR << 1, buf, buflen, MAX30102_I2C_TIMEOUT);
-    for(int i = 0; i < buflen; i++){
-        printf("Reading from %02x: %02x \n", reg + i, buf[i]);
-    }
+}
+
+void max30102_reset(max30102_t *obj)
+{
+    uint8_t val = 0x40;
+    max30102_write(obj, MAX30102_MODE_CONFIG, &val, 1);
 }
 
 void max30102_enable_interrupt(max30102_t *obj, uint8_t a_full, uint8_t ppg_rdy, uint8_t alc_ovf, uint8_t die_temp_rdy)
@@ -50,7 +47,8 @@ void max30102_on_interrupt(max30102_t *obj)
     obj->_interrupt_flag = 1;
 }
 
-uint8_t max30102_has_interrupt(max30102_t *obj) {
+uint8_t max30102_has_interrupt(max30102_t *obj)
+{
     return obj->_interrupt_flag;
 }
 
@@ -59,42 +57,47 @@ void max30102_interrupt_handler(max30102_t *obj)
     uint8_t interrupt_registers[2] = {0x00};
     // Interrupt flag in registers 0x00 and 0x01 are cleared on read
     max30102_read(obj, MAX30102_INTERRUPT_STATUS_1, interrupt_registers, 2);
-    printf("Interrupt status: 0x%02x, 0x%02x\n", interrupt_registers[0], interrupt_registers[1]);
     // To be implemented
     if (interrupt_registers[0] & 0x80)
     {
-    	printf("A_FULL triggered\n");
+        printf("A_FULL triggered\n");
         // A_FULL
         max30102_read_fifo(obj);
         printf("Red: ");
         for (int i = 0; i < 32; i++)
         {
-            printf("%d ", (int) obj->_red_sample[i]);
+            printf("%d ", (int)obj->_red_sample[i]);
         }
         printf("\n");
 
         printf("IR: ");
         for (int i = 0; i < 32; i++)
         {
-            printf("%d ", (int) obj->_ir_sample[i]);
+            printf("%d ", (int)obj->_ir_sample[i]);
         }
         printf("\n");
     }
     if (interrupt_registers[0] & 0x40)
     {
         // PPG_RDY
-    	printf("PPG_RDY triggered\n");
+        printf("PPG_RDY triggered\n");
     }
     if (interrupt_registers[0] & 0x20)
     {
         // ALC_OVF
-    	printf("ALC_OVF triggered\n");
+        printf("ALC_OVF triggered\n");
     }
     if (interrupt_registers[1] & 0x02)
     {
         // DIE_TEMP_RDY
-    	printf("DIE_TEMP_RDY triggered\n");
+        printf("DIE_TEMP_RDY triggered\n");
     }
+    if (interrupt_registers[0] & 0x01)
+    {
+        // DIE_TEMP_RDY
+        printf("PWR_RDY triggered\n");
+    }
+
     obj->_interrupt_flag = 0;
 }
 
@@ -159,6 +162,20 @@ void max30102_set_led_current_2(max30102_t *obj, float ma)
     max30102_write(obj, MAX30102_LED_RED_PA2, &pa, 1);
 }
 
+void max30102_set_multi_led_slot_1_2(max30102_t *obj, max30102_multi_led_ctrl_t slot1, max30102_multi_led_ctrl_t slot2)
+{
+    uint8_t val = 0;
+    val |= ((slot1 << MAX30102_MULTI_LED_CTRL_SLOT1) | (slot2 << MAX30102_MULTI_LED_CTRL_SLOT2));
+    max30102_write(obj, MAX30102_MULTI_LED_CTRL_1, &val, 1);
+}
+
+void max30102_set_multi_led_slot_3_4(max30102_t *obj, max30102_multi_led_ctrl_t slot3, max30102_multi_led_ctrl_t slot4)
+{
+    uint8_t val = 0;
+    val |= ((slot3 << MAX30102_MULTI_LED_CTRL_SLOT3) | (slot4 << MAX30102_MULTI_LED_CTRL_SLOT4));
+    max30102_write(obj, MAX30102_MULTI_LED_CTRL_2, &val, 1);
+}
+
 void max30102_set_fifo_config(max30102_t *obj, max30102_smp_ave_t smp_ave, uint8_t roll_over_en, uint8_t fifo_a_full)
 {
     uint8_t config = 0x00;
@@ -190,7 +207,7 @@ void max30102_read_fifo(max30102_t *obj)
     memset(obj->_red_sample, 0, MAX30102_SAMPLE_LEN_MAX * sizeof(uint32_t));
 
     // Burst read NOT supported for FIFO_DATA
-    for (uint8_t i = 0; i < number_of_samples; i += MAX30102_BYTES_PER_SAMPLE)
+    for (uint8_t i = 0; i < number_of_samples; i++)
     {
         uint8_t fifo_data_i[6] = {0};
         max30102_read(obj, MAX30102_FIFO_DATA, fifo_data_i, 1);
@@ -200,7 +217,7 @@ void max30102_read_fifo(max30102_t *obj)
         max30102_read(obj, MAX30102_FIFO_DATA, fifo_data_i + 4, 1);
         max30102_read(obj, MAX30102_FIFO_DATA, fifo_data_i + 5, 1);
 
-        obj->_red_sample[i / MAX30102_BYTES_PER_SAMPLE] = ((fifo_data_i[i] << 16) | (fifo_data_i[i + 1] << 8) | (fifo_data_i[i + 2])) >> (3 - obj->_pw);
-        obj->_ir_sample[i / MAX30102_BYTES_PER_SAMPLE] = ((fifo_data_i[i + 3] << 16) | (fifo_data_i[i + 4] << 8) | (fifo_data_i[i + 5])) >> (3 - obj->_pw);
+        obj->_red_sample[i] = ((fifo_data_i[i] << 16) | (fifo_data_i[i + 1] << 8) | (fifo_data_i[i + 2])) >> (3 - obj->_pw);
+        obj->_ir_sample[i] = ((fifo_data_i[i + 3] << 16) | (fifo_data_i[i + 4] << 8) | (fifo_data_i[i + 5])) >> (3 - obj->_pw);
     }
 }

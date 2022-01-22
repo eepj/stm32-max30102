@@ -7,8 +7,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX30102_I2C_ADDR 0x57
-#define MAX30102_I2C_TIMEOUT 1000
+#define MAX30102_I2C_ADDR           0x57
+#define MAX30102_I2C_TIMEOUT        1000
+
+#define MAX30102_BYTES_PER_SAMPLE   6
+#define MAX30102_SAMPLE_LEN_MAX     32
 
 #define MAX30102_INTERRUPT_STATUS_1 0x00
 #define MAX30102_INTERRUPT_STATUS_2 0x01
@@ -105,8 +108,9 @@ typedef struct max30102_t
 {
     I2C_HandleTypeDef *ui2c;
     max30102_mode_t _mode;
-    uint16_t _ir_sample[16];
-    uint16_t _red_sample[16];
+    max30102_spo2_led_pw_t _pw;
+    uint32_t _ir_sample[32];
+    uint32_t _red_sample[32];
 } max30102_t;
 
 void max30102_init(max30102_t *obj, I2C_HandleTypeDef *hi2c);

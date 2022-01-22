@@ -71,6 +71,7 @@ void max30102_set_spo2_led_pulse_width(max30102_t *obj, max30102_spo2_led_pw_t p
     config = (config & 0x7c) | (pw << MAX30102_SPO2_LEW_PW);
     max30102_write(obj, MAX30102_SPO2_CONFIG, &config, 1);
 }
+
 void max30102_set_spo2_adc_resolution(max30102_t *obj, max30102_spo2_adc_t adc)
 {
     uint8_t config;

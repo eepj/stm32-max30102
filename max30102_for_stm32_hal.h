@@ -45,6 +45,10 @@
 #define MAX30102_MULTI_LED_CTRL_SLOT4       4
 #define MAX30102_MULTI_LED_CTRL_SLOT3       0
 
+#define MAX30102_DIE_TINT           0x1f
+#define MAX30102_DIE_TFRAC          0x20
+#define MAX30102_DIE_TFRAC_INCREMENT        0.0625f
+#define MAX30102_DIE_TEMP_EN        0x21
 
 typedef enum max30102_mode_t {
     max30102_heart_rate = 0x02,
@@ -94,5 +98,23 @@ typedef struct max30102_t
 void max30102_init(max30102_t *obj, I2C_HandleTypeDef *hi2c);
 void max30102_write(max30102_t *obj, uint8_t reg, uint8_t *buf, size_t buflen);
 void max30102_read(max30102_t *obj, uint8_t reg, uint8_t *buf, size_t buflen);
+
+void max30102_enable_interrupt(max30102_t *obj, uint8_t a_full, uint8_t ppg_rdy, uint8_t alc_ovf, uint8_t die_temp_rdy);
+
+void max30102_interrupt_handler(max30102_t *obj);
+
+void max30102_shutdown(max30102_t *obj, uint8_t shdn);
+
+void max30102_set_mode(max30102_t *obj, max30102_mode_t mode);
+void max30102_set_spo2_sampling_rate(max30102_t *obj, max30102_spo2_sr_t sr);
+
+void max30102_set_spo2_led_pulse_width(max30102_t *obj, max30102_spo2_led_pw_t pw);
+void max30102_set_spo2_adc_resolution(max30102_t *obj, max30102_spo2_adc_t adc);
+
+void max30102_set_led_current_1(max30102_t *obj, float ma);
+void max30102_set_led_current_2(max30102_t *obj, float ma);
+
+void max30102_clear_fifo(max30102_t *obj);
+void max30102_read_fifo(max30102_t *obj);
 
 #endif

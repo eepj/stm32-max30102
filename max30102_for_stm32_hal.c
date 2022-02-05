@@ -5,8 +5,9 @@ void max30102_init(max30102_t *obj, I2C_HandleTypeDef *hi2c)
 {
     obj->ui2c = hi2c;
     obj->_interrupt_flag = 0;
-    memset(obj->_ir_sample, 0, MAX30102_SAMPLE_LEN_MAX * sizeof(uint32_t));
-    memset(obj->_red_sample, 0, MAX30102_SAMPLE_LEN_MAX * sizeof(uint32_t));
+    obj->_read_ptr = 0x00;
+    memset(obj->_ir_samples, 0, MAX30102_SAMPLE_LEN_MAX * sizeof(uint32_t));
+    memset(obj->_red_samples, 0, MAX30102_SAMPLE_LEN_MAX * sizeof(uint32_t));
 }
 
 void max30102_write(max30102_t *obj, uint8_t reg, uint8_t *buf, uint16_t buflen)
@@ -32,14 +33,43 @@ void max30102_reset(max30102_t *obj)
     max30102_write(obj, MAX30102_MODE_CONFIG, &val, 1);
 }
 
-void max30102_enable_interrupt(max30102_t *obj, uint8_t a_full, uint8_t ppg_rdy, uint8_t alc_ovf, uint8_t die_temp_rdy)
+void max30102_set_a_full(max30102_t *obj, uint8_t enable)
 {
-    uint8_t interrupt_enabled[2] = {0x00};
-    interrupt_enabled[0] |= (a_full & 0x01) << MAX30102_INTERRUPT_A_FULL;
-    interrupt_enabled[0] |= (ppg_rdy & 0x01) << MAX30102_INTERRUPT_PPG_RDY;
-    interrupt_enabled[0] |= (alc_ovf & 0x01) << MAX30102_INTERRUPT_ALC_OVF;
-    interrupt_enabled[1] |= (die_temp_rdy & 0x01) << MAX30102_INTERRUPT_DIE_TEMP_RDY;
-    max30102_write(obj, MAX30102_INTERRUPT_ENABLE_1, interrupt_enabled, 2);
+    uint8_t reg = 0;
+    max30102_read(obj, MAX30102_INTERRUPT_ENABLE_1, &reg, 1);
+    reg &= ~(0x01 << MAX30102_INTERRUPT_A_FULL);
+    reg |= ((enable & 0x01) << MAX30102_INTERRUPT_A_FULL);
+    max30102_write(obj, MAX30102_INTERRUPT_ENABLE_1, &reg, 1);
+}
+
+void max30102_set_ppg_rdy(max30102_t *obj, uint8_t enable)
+{
+    uint8_t reg = 0;
+    max30102_read(obj, MAX30102_INTERRUPT_ENABLE_1, &reg, 1);
+    reg &= ~(0x01 << MAX30102_INTERRUPT_PPG_RDY);
+    reg |= ((enable & 0x01) << MAX30102_INTERRUPT_PPG_RDY);
+    max30102_write(obj, MAX30102_INTERRUPT_ENABLE_1, &reg, 1);
+}
+
+void max30102_set_alc_ovf(max30102_t *obj, uint8_t enable)
+{
+    uint8_t reg = 0;
+    max30102_read(obj, MAX30102_INTERRUPT_ENABLE_1, &reg, 1);
+    reg &= ~(0x01 << MAX30102_INTERRUPT_ALC_OVF);
+    reg |= ((enable & 0x01) << MAX30102_INTERRUPT_ALC_OVF);
+    max30102_write(obj, MAX30102_INTERRUPT_ENABLE_1, &reg, 1);
+}
+
+void max30102_set_die_temp_rdy(max30102_t *obj, uint8_t enable)
+{
+    uint8_t reg = (enable & 0x01) << MAX30102_INTERRUPT_DIE_TEMP_RDY;
+    max30102_write(obj, MAX30102_INTERRUPT_ENABLE_2, &reg, 1);
+}
+
+void max30102_set_die_temp_en(max30102_t *obj, uint8_t enable)
+{
+    uint8_t reg = (enable & 0x01) << MAX30102_DIE_TEMP_EN;
+    max30102_write(obj, MAX30102_DIE_TEMP_CONFIG, &reg, 1);
 }
 
 void max30102_on_interrupt(max30102_t *obj)
@@ -54,50 +84,36 @@ uint8_t max30102_has_interrupt(max30102_t *obj)
 
 void max30102_interrupt_handler(max30102_t *obj)
 {
-    uint8_t interrupt_registers[2] = {0x00};
+    uint8_t reg[2] = {0x00};
     // Interrupt flag in registers 0x00 and 0x01 are cleared on read
-    max30102_read(obj, MAX30102_INTERRUPT_STATUS_1, interrupt_registers, 2);
+    max30102_read(obj, MAX30102_INTERRUPT_STATUS_1, reg, 2);
     // To be implemented
-    if (interrupt_registers[0] & 0x80)
-    {
-        printf("A_FULL triggered\n");
-        // A_FULL
-        max30102_read_fifo(obj);
-        printf("Red: ");
-        for (int i = 0; i < 32; i++)
-        {
-            printf("%d ", (int)obj->_red_sample[i]);
-        }
-        printf("\n");
+    printf("INT1 = 0x%02x\n", reg[0]);
+    printf("INT2 = 0x%02x\n", reg[1]);
 
-        printf("IR: ");
-        for (int i = 0; i < 32; i++)
-        {
-            printf("%d ", (int)obj->_ir_sample[i]);
-        }
-        printf("\n");
-    }
-    if (interrupt_registers[0] & 0x40)
+    if ((reg[0] >> MAX30102_INTERRUPT_A_FULL) & 0x01)
     {
-        // PPG_RDY
-        printf("PPG_RDY triggered\n");
-    }
-    if (interrupt_registers[0] & 0x20)
-    {
-        // ALC_OVF
-        printf("ALC_OVF triggered\n");
-    }
-    if (interrupt_registers[1] & 0x02)
-    {
-        // DIE_TEMP_RDY
-        printf("DIE_TEMP_RDY triggered\n");
-    }
-    if (interrupt_registers[0] & 0x01)
-    {
-        // DIE_TEMP_RDY
-        printf("PWR_RDY triggered\n");
+        // FIFO almost full
+        printf("FIFO almost full\n");
+        // max30102_read_fifo(obj);
     }
 
+    if ((reg[0] >> MAX30102_INTERRUPT_PPG_RDY) & 0x01)
+    {
+        // New FIFO data ready
+    }
+
+    if ((reg[0] >> MAX30102_INTERRUPT_ALC_OVF) & 0x01)
+    {
+        // Ambient light overflow
+    }
+
+    if ((reg[1] >> MAX30102_INTERRUPT_DIE_TEMP_RDY) & 0x01)
+    {
+        // Temperature data ready
+    }
+
+    // Reset interrupt flag
     obj->_interrupt_flag = 0;
 }
 
@@ -116,9 +132,10 @@ void max30102_set_mode(max30102_t *obj, max30102_mode_t mode)
     max30102_read(obj, MAX30102_MODE_CONFIG, &config, 1);
     config = (config & 0xf8) | mode;
     max30102_write(obj, MAX30102_MODE_CONFIG, &config, 1);
+    max30102_clear_fifo(obj);
 }
 
-void max30102_set_spo2_sampling_rate(max30102_t *obj, max30102_spo2_sr_t sr)
+void max30102_set_sampling_rate(max30102_t *obj, max30102_spo2_sr_t sr)
 {
     uint8_t config;
     max30102_read(obj, MAX30102_SPO2_CONFIG, &config, 1);
@@ -126,7 +143,7 @@ void max30102_set_spo2_sampling_rate(max30102_t *obj, max30102_spo2_sr_t sr)
     max30102_write(obj, MAX30102_SPO2_CONFIG, &config, 1);
 }
 
-void max30102_set_spo2_led_pulse_width(max30102_t *obj, max30102_spo2_led_pw_t pw)
+void max30102_set_led_pulse_width(max30102_t *obj, max30102_spo2_led_pw_t pw)
 {
     uint8_t config;
     max30102_read(obj, MAX30102_SPO2_CONFIG, &config, 1);
@@ -134,7 +151,7 @@ void max30102_set_spo2_led_pulse_width(max30102_t *obj, max30102_spo2_led_pw_t p
     max30102_write(obj, MAX30102_SPO2_CONFIG, &config, 1);
 }
 
-void max30102_set_spo2_adc_resolution(max30102_t *obj, max30102_spo2_adc_t adc)
+void max30102_set_adc_resolution(max30102_t *obj, max30102_spo2_adc_t adc)
 {
     uint8_t config;
     max30102_read(obj, MAX30102_SPO2_CONFIG, &config, 1);
@@ -187,37 +204,33 @@ void max30102_set_fifo_config(max30102_t *obj, max30102_smp_ave_t smp_ave, uint8
 
 void max30102_clear_fifo(max30102_t *obj)
 {
-    uint8_t val = 0x00;
-    max30102_write(obj, MAX30102_FIFO_WR_PTR, &val, 1);
-    max30102_write(obj, MAX30102_FIFO_RD_PTR, &val, 1);
-    max30102_write(obj, MAX30102_OVF_COUNTER, &val, 1);
+    obj->_read_ptr = 0x00;
+    uint8_t val[3] = {0x00};
+    max30102_write(obj, MAX30102_FIFO_WR_PTR, val, 3);
 }
 
 void max30102_read_fifo(max30102_t *obj)
 {
-    uint8_t ptr[3] = {0x00};
-    max30102_read(obj, MAX30102_FIFO_WR_PTR, ptr, 3);
+    // First transaction: Get the FIFO_WR_PTR
+    uint8_t wr_ptr = 0;
+    max30102_read(obj, MAX30102_FIFO_WR_PTR, &wr_ptr, 3);
+    uint8_t num_available_samples = wr_ptr - obj->_read_ptr;
+    uint8_t num_samples_to_read = num_available_samples;
 
-    int8_t fifo_wr_ptr = ptr[0];
-    int8_t fifo_rd_ptr = ptr[2];
-    int8_t number_of_samples = (fifo_wr_ptr - fifo_rd_ptr);
-    number_of_samples = (number_of_samples >= 0 ? number_of_samples : -number_of_samples);
-
-    memset(obj->_ir_sample, 0, MAX30102_SAMPLE_LEN_MAX * sizeof(uint32_t));
-    memset(obj->_red_sample, 0, MAX30102_SAMPLE_LEN_MAX * sizeof(uint32_t));
-
-    // Burst read NOT supported for FIFO_DATA
-    for (uint8_t i = 0; i < number_of_samples; i++)
+    if (num_samples_to_read > MAX30102_SAMPLE_LEN_MAX)
     {
-        uint8_t fifo_data_i[6] = {0};
-        max30102_read(obj, MAX30102_FIFO_DATA, fifo_data_i, 1);
-        max30102_read(obj, MAX30102_FIFO_DATA, fifo_data_i + 1, 1);
-        max30102_read(obj, MAX30102_FIFO_DATA, fifo_data_i + 2, 1);
-        max30102_read(obj, MAX30102_FIFO_DATA, fifo_data_i + 3, 1);
-        max30102_read(obj, MAX30102_FIFO_DATA, fifo_data_i + 4, 1);
-        max30102_read(obj, MAX30102_FIFO_DATA, fifo_data_i + 5, 1);
+        num_available_samples = MAX30102_SAMPLE_LEN_MAX;
+    }
 
-        obj->_red_sample[i] = ((fifo_data_i[i] << 16) | (fifo_data_i[i + 1] << 8) | (fifo_data_i[i + 2])) >> (3 - obj->_pw);
-        obj->_ir_sample[i] = ((fifo_data_i[i + 3] << 16) | (fifo_data_i[i + 4] << 8) | (fifo_data_i[i + 5])) >> (3 - obj->_pw);
+    // Second transaction: Read NUM_SAMPLES_TO_READ samples from the FIFO
+    for (uint8_t i = 0; i < num_samples_to_read; i++)
+    {
+        uint8_t ir[3], red[3];
+        max30102_read(obj, MAX30102_FIFO_DATA, ir, 3);
+        max30102_read(obj, MAX30102_FIFO_DATA, red, 3);
+        uint8_t ir_sample = (ir[0] << 16) | (ir[1] << 8) | (ir[2]);
+        uint8_t red_sample = (red[0] << 16) | (red[1] << 8) | (red[2]);
+        obj->_ir_samples[i] = ir_sample;
+        obj->_red_samples[i] = red_sample;
     }
 }

@@ -1,6 +1,10 @@
 #include "max30102_for_stm32_hal.h"
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 void max30102_init(max30102_t *obj, I2C_HandleTypeDef *hi2c)
 {
     obj->ui2c = hi2c;
@@ -234,3 +238,7 @@ void max30102_read_fifo(max30102_t *obj)
         printf("ir:%u,r:%u\n", ir_sample, red_sample);
     }
 }
+
+#ifdef __cplusplus
+}
+#endif

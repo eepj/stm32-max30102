@@ -1,7 +1,7 @@
 #ifndef MAX30102_FOR_STM32_HAL_H
 #define MAX30102_FOR_STM32_HAL_H
 
-#include "../Inc/main.h"
+#include "main.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>

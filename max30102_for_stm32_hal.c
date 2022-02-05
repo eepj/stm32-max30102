@@ -86,7 +86,7 @@ void max30102_interrupt_handler(max30102_t *obj)
     uint8_t reg[2] = {0x00};
     // Interrupt flag in registers 0x00 and 0x01 are cleared on read
     max30102_read(obj, MAX30102_INTERRUPT_STATUS_1, reg, 2);
-    
+
     if ((reg[0] >> MAX30102_INTERRUPT_A_FULL) & 0x01)
     {
         // FIFO almost full

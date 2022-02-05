@@ -98,10 +98,10 @@ typedef enum max30102_spo2_led_pw_t
 
 typedef enum max30102_spo2_adc_t
 {
-    max30102_spo2_adc_00,
-    max30102_spo2_adc_01,
-    max30102_spo2_adc_10,
-    max30102_spo2_adc_11
+    max30102_spo2_adc_2048,
+    max30102_spo2_adc_4096,
+    max30102_spo2_adc_8192,
+    max30102_spo2_adc_16384
 } max30102_spo2_adc_t;
 
 typedef enum max30102_multi_led_ctrl_t
@@ -119,7 +119,6 @@ typedef struct max30102_t
     uint32_t _ir_samples[32];
     uint32_t _red_samples[32];
     uint8_t _interrupt_flag;
-    uint8_t _read_ptr;
 } max30102_t;
 
 void max30102_init(max30102_t *obj, I2C_HandleTypeDef *hi2c);

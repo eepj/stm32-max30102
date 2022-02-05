@@ -5,7 +5,6 @@ void max30102_init(max30102_t *obj, I2C_HandleTypeDef *hi2c)
 {
     obj->ui2c = hi2c;
     obj->_interrupt_flag = 0;
-    obj->_read_ptr = 0x00;
     memset(obj->_ir_samples, 0, MAX30102_SAMPLE_LEN_MAX * sizeof(uint32_t));
     memset(obj->_red_samples, 0, MAX30102_SAMPLE_LEN_MAX * sizeof(uint32_t));
 }
@@ -87,15 +86,11 @@ void max30102_interrupt_handler(max30102_t *obj)
     uint8_t reg[2] = {0x00};
     // Interrupt flag in registers 0x00 and 0x01 are cleared on read
     max30102_read(obj, MAX30102_INTERRUPT_STATUS_1, reg, 2);
-    // To be implemented
-    printf("INT1 = 0x%02x\n", reg[0]);
-    printf("INT2 = 0x%02x\n", reg[1]);
-
+    
     if ((reg[0] >> MAX30102_INTERRUPT_A_FULL) & 0x01)
     {
         // FIFO almost full
-        printf("FIFO almost full\n");
-        // max30102_read_fifo(obj);
+        max30102_read_fifo(obj);
     }
 
     if ((reg[0] >> MAX30102_INTERRUPT_PPG_RDY) & 0x01)
@@ -204,33 +199,38 @@ void max30102_set_fifo_config(max30102_t *obj, max30102_smp_ave_t smp_ave, uint8
 
 void max30102_clear_fifo(max30102_t *obj)
 {
-    obj->_read_ptr = 0x00;
-    uint8_t val[3] = {0x00};
-    max30102_write(obj, MAX30102_FIFO_WR_PTR, val, 3);
+    uint8_t val = 0x00;
+    max30102_write(obj, MAX30102_FIFO_WR_PTR, &val, 3);
+    max30102_write(obj, MAX30102_FIFO_RD_PTR, &val, 3);
+    max30102_write(obj, MAX30102_OVF_COUNTER, &val, 3);
 }
 
 void max30102_read_fifo(max30102_t *obj)
 {
     // First transaction: Get the FIFO_WR_PTR
-    uint8_t wr_ptr = 0;
-    max30102_read(obj, MAX30102_FIFO_WR_PTR, &wr_ptr, 3);
-    uint8_t num_available_samples = wr_ptr - obj->_read_ptr;
-    uint8_t num_samples_to_read = num_available_samples;
+    uint8_t wr_ptr = 0, rd_ptr = 0;
+    max30102_read(obj, MAX30102_FIFO_WR_PTR, &wr_ptr, 1);
+    max30102_read(obj, MAX30102_FIFO_RD_PTR, &rd_ptr, 1);
 
-    if (num_samples_to_read > MAX30102_SAMPLE_LEN_MAX)
+    int8_t num_samples;
+
+    num_samples = (int8_t)wr_ptr - (int8_t)rd_ptr;
+    if (num_samples < 1)
     {
-        num_available_samples = MAX30102_SAMPLE_LEN_MAX;
+        num_samples += 32;
     }
 
     // Second transaction: Read NUM_SAMPLES_TO_READ samples from the FIFO
-    for (uint8_t i = 0; i < num_samples_to_read; i++)
+    for (int8_t i = 0; i < num_samples; i++)
     {
-        uint8_t ir[3], red[3];
-        max30102_read(obj, MAX30102_FIFO_DATA, ir, 3);
-        max30102_read(obj, MAX30102_FIFO_DATA, red, 3);
-        uint8_t ir_sample = (ir[0] << 16) | (ir[1] << 8) | (ir[2]);
-        uint8_t red_sample = (red[0] << 16) | (red[1] << 8) | (red[2]);
+        uint8_t sample[6];
+        max30102_read(obj, MAX30102_FIFO_DATA, sample, 6);
+        uint32_t ir_sample = ((uint32_t)(sample[0] << 16) | (uint32_t)(sample[1] << 8) | (uint32_t)(sample[3])) & 0x3ffff;
+        uint32_t red_sample = ((uint32_t)(sample[3] << 16) | (uint32_t)(sample[4] << 8) | (uint32_t)(sample[5])) & 0x3ffff;
         obj->_ir_samples[i] = ir_sample;
         obj->_red_samples[i] = red_sample;
+        // printf("ir:%u\n", ir_sample);
+        // printf("r:%u\n", red_sample);
+        printf("ir:%u,r:%u\n", ir_sample, red_sample);
     }
 }

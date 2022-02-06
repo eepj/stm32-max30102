@@ -78,22 +78,22 @@ typedef enum max30102_smp_ave_t
 
 typedef enum max30102_sr_t
 {
-    max30102_spo2_50,
-    max30102_spo2_100,
-    max30102_spo2_200,
-    max30102_spo2_400,
-    max30102_spo2_800,
-    max30102_spo2_1000,
-    max30102_spo2_1600,
-    max30102_spo2_3200
+    max30102_sr_50,
+    max30102_sr_100,
+    max30102_sr_200,
+    max30102_sr_400,
+    max30102_sr_800,
+    max30102_sr_1000,
+    max30102_sr_1600,
+    max30102_sr_3200
 } max30102_sr_t;
 
 typedef enum max30102_led_pw_t
 {
-    max30102_spo2_15_bit,
-    max30102_spo2_16_bit,
-    max30102_spo2_17_bit,
-    max30102_spo2_18_bit
+    max30102_pw_15_bit,
+    max30102_pw_16_bit,
+    max30102_pw_17_bit,
+    max30102_pw_18_bit
 } max30102_led_pw_t;
 
 typedef enum max30102_adc_t

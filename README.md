@@ -23,7 +23,7 @@ An STM32 HAL library for the MAX30102 pulse oximeter and heart rate sensor.
 ```c
 #include "max30102_for_stm32_hal.h"
 ```
-* If necessary, override the built-in plot function `__weak void max30102_plot(uint32_t ir_sample, uint32_t red_sample)` in the main file outside the main function:
+* Override the built-in plot function in the main file outside the main function:
 ```c
 void max30102_plot(uint32_t ir_sample, uint32_t red_sample) {
   / * Insert your printing logic here * /

@@ -80,16 +80,12 @@ while (1) {
 }
 ```
 ### Interrupt
+* Include `max30102_for_stm32_hal.h"`:
+```c
+```
 * In the corresponding external interrupt handler function, call:
 ```c
 max30102_on_interrupt(&max30102);
-```
-  As in:
-```c
-void EXTI9_5_IRQHandler(void) {
-  max30102_on_interrupt(&max30102);
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
-}
 ```
 
 ### Compilation

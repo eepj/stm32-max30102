@@ -5,6 +5,12 @@
 extern "C"{
 #endif
 
+__weak void max30102_plot(uint32_t ir_sample, uint32_t red_sample) {
+    // printf("ir:%u\n", ir_sample);
+    // printf("r:%u\n", red_sample);
+    printf("ir:%u,r:%u\n", ir_sample, red_sample);
+}
+
 void max30102_init(max30102_t *obj, I2C_HandleTypeDef *hi2c)
 {
     obj->ui2c = hi2c;
@@ -232,9 +238,7 @@ void max30102_read_fifo(max30102_t *obj)
         uint32_t red_sample = ((uint32_t)(sample[3] << 16) | (uint32_t)(sample[4] << 8) | (uint32_t)(sample[5])) & 0x3ffff;
         obj->_ir_samples[i] = ir_sample;
         obj->_red_samples[i] = red_sample;
-        // printf("ir:%u\n", ir_sample);
-        // printf("r:%u\n", red_sample);
-        printf("ir:%u,r:%u\n", ir_sample, red_sample);
+        max30102_plot(ir_sample, red_sample);
     }
 }
 

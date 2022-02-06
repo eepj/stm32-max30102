@@ -82,6 +82,7 @@ while (1) {
 ### Interrupt
 * Include `max30102_for_stm32_hal.h"`:
 ```c
+#include "max30102_for_stm32_hal.h"
 ```
 * In the corresponding external interrupt handler function, call:
 ```c

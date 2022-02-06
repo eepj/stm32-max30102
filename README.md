@@ -84,6 +84,10 @@ while (1) {
 ```c
 #include "max30102_for_stm32_hal.h"
 ```
+* Declare the `max30102_t` object as extern:
+```c
+extern max30102_t max30102;
+```
 * In the corresponding external interrupt handler function, call:
 ```c
 max30102_on_interrupt(&max30102);

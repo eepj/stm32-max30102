@@ -114,8 +114,6 @@ typedef enum max30102_multi_led_ctrl_t
 typedef struct max30102_t
 {
     I2C_HandleTypeDef *ui2c;
-    max30102_mode_t _mode;
-    max30102_spo2_led_pw_t _pw;
     uint32_t _ir_samples[32];
     uint32_t _red_samples[32];
     uint8_t _interrupt_flag;

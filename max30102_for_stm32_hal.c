@@ -127,7 +127,6 @@ void max30102_shutdown(max30102_t *obj, uint8_t shdn)
 void max30102_set_mode(max30102_t *obj, max30102_mode_t mode)
 {
     uint8_t config;
-    obj->_mode = mode;
     max30102_read(obj, MAX30102_MODE_CONFIG, &config, 1);
     config = (config & 0xf8) | mode;
     max30102_write(obj, MAX30102_MODE_CONFIG, &config, 1);

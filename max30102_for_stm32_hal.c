@@ -7,8 +7,8 @@ extern "C"
 #endif
 
 /**
- * @brief Built-in plotting function. Override if necessary.
- *
+ * @brief Built-in plotting function. Called during an interrupt to print/plot the current sample.
+ * @note Override this in your main.c if you do not use printf() for printing.
  * @param ir_sample
  * @param red_sample
  */

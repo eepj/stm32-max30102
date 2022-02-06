@@ -7,7 +7,7 @@ extern "C"
 #endif
 
 /**
- * @brief Built-in plotting function. Override it if necessary.
+ * @brief Built-in plotting function. Override if necessary.
  *
  * @param ir_sample
  * @param red_sample

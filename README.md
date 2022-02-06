@@ -18,10 +18,18 @@ An STM32 HAL library for the MAX30102 pulse oximeter and heart rate sensor.
 * Save and generate code.
 
 ### Main Program
+#### Outside the main function
 * Include `max30102_for_stm32_hal.h"`:
 ```c
 #include "max30102_for_stm32_hal.h"
 ```
+* If necessary, override the built-in plot function `__weak void max30102_plot(uint32_t ir_sample, uint32_t red_sample)` in the main file outside the main function:
+```c
+void max30102_plot(uint32_t ir_sample, uint32_t red_sample) {
+  / * Insert your printing logic here * /
+}
+```
+#### Before the superloop
 * Declare an `max30102_t` object:
 ```c
 max30102_t max30102;
@@ -46,7 +54,6 @@ max30102_set_sampling_rate(&max30102, max30102_spo2_800);
 max30102_set_led_current_1(&max30102, 6.2);
 max30102_set_led_current_2(&max30102, 6.2);
 ```
-
 * Enter measurement mode:
 ```c
 // Enter SpO2 mode
@@ -62,6 +69,7 @@ max30102_set_die_temp_en(&max30102, 1);
 // Enable DIE_TEMP_RDY interrupt
 max30102_set_die_temp_rdy(&max30102, 1);
 ```
+#### In the superloop
 * Run interrupt handler once interrupt flag is active:
 ```c
 while (1) {
@@ -72,16 +80,13 @@ while (1) {
 }
 ```
 ### Interrupt
+* Include `max30102_for_stm32_hal.h"`:
+```c
+#include "max30102_for_stm32_hal.h"
+```
 * In the corresponding external interrupt handler function, call:
 ```c
 max30102_on_interrupt(&max30102);
-```
-  As in:
-```c
-void EXTI9_5_IRQHandler(void) {
-  max30102_on_interrupt(&max30102);
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
-}
 ```
 
 ### Compilation

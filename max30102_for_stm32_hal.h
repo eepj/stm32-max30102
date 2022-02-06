@@ -113,7 +113,7 @@ typedef enum max30102_multi_led_ctrl_t
 
 typedef struct max30102_t
 {
-    I2C_HandleTypeDef *ui2c;
+    I2C_HandleTypeDef *_ui2c;
     uint32_t _ir_samples[32];
     uint32_t _red_samples[32];
     uint8_t _interrupt_flag;
@@ -153,5 +153,7 @@ void max30102_set_multi_led_slot_3_4(max30102_t *obj, max30102_multi_led_ctrl_t 
 void max30102_set_fifo_config(max30102_t *obj, max30102_smp_ave_t smp_ave, uint8_t roll_over_en, uint8_t fifo_a_full);
 void max30102_clear_fifo(max30102_t *obj);
 void max30102_read_fifo(max30102_t *obj);
+
+void max30102_read_temp(max30102_t *obj, int8_t *temp_int, uint8_t *temp_frac);
 
 #endif

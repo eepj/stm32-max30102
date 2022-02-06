@@ -8,13 +8,15 @@ extern "C"
 
 /**
  * @brief Built-in plotting function. Called during an interrupt to print/plot the current sample.
- * @note Override this in your main.c.
- * @param ir_sample The IR sample read in the current iteration.
- * @param red_sample The Red sample read in the current iteration.
+ * @note Override this in your main.c if you do not use printf() for printing.
+ * @param ir_sample
+ * @param red_sample
  */
 __weak void max30102_plot(uint32_t ir_sample, uint32_t red_sample)
 {
-    
+    // printf("ir:%u\n", ir_sample);
+    // printf("r:%u\n", red_sample);
+    printf("ir:%u,r:%u\n", ir_sample, red_sample);
 }
 
 /**

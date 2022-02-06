@@ -47,6 +47,10 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
+void max30102_plot(uint32_t ir_sample, uint32_t red_sample) {
+  / * Replace your printing logic here, the line below is an example * /
+  printf("ir:%u,r:%u\n", ir_sample, red_sample); // Example for Arduino serial plotter
+}
 // printf function
 int __io_putchar(int ch)
 {

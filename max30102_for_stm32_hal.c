@@ -14,9 +14,7 @@ extern "C"
  */
 __weak void max30102_plot(uint32_t ir_sample, uint32_t red_sample)
 {
-    // printf("ir:%u\n", ir_sample);
-    // printf("r:%u\n", red_sample);
-    printf("ir:%u,r:%u\n", ir_sample, red_sample);
+    
 }
 
 /**

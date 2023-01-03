@@ -14,7 +14,8 @@ extern "C"
  */
 __weak void max30102_plot(uint32_t ir_sample, uint32_t red_sample)
 {
-    
+    UNUSED(ir_sample);
+    UNUSED(red_sample);
 }
 
 /**

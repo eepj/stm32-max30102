@@ -384,7 +384,7 @@ void max30102_read_fifo(max30102_t *obj)
     {
         uint8_t sample[6];
         max30102_read(obj, MAX30102_FIFO_DATA, sample, 6);
-        uint32_t ir_sample = ((uint32_t)(sample[0] << 16) | (uint32_t)(sample[1] << 8) | (uint32_t)(sample[3])) & 0x3ffff;
+        uint32_t ir_sample = ((uint32_t)(sample[0] << 16) | (uint32_t)(sample[1] << 8) | (uint32_t)(sample[2])) & 0x3ffff;
         uint32_t red_sample = ((uint32_t)(sample[3] << 16) | (uint32_t)(sample[4] << 8) | (uint32_t)(sample[5])) & 0x3ffff;
         obj->_ir_samples[i] = ir_sample;
         obj->_red_samples[i] = red_sample;

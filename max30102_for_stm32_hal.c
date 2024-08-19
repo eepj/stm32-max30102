@@ -245,7 +245,7 @@ void max30102_set_sampling_rate(max30102_t *obj, max30102_sr_t sr)
 {
     uint8_t config;
     max30102_read(obj, MAX30102_SPO2_CONFIG, &config, 1);
-    config = (config & 0x63) << MAX30102_SPO2_SR;
+    config = (config & 0x63) | (sr << MAX30102_SPO2_SR);
     max30102_write(obj, MAX30102_SPO2_CONFIG, &config, 1);
 }
 
